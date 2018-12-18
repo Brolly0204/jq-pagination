@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="renderer" content="webkit">
+	<title>基于 EasyHelper 的分页</title>
+	<link rel="stylesheet" href="easyhelper.min.css">
+	<style>
+		.title {
+			text-align: center;
+			font-size: 24px;
+			margin-top: 50px;
+		}
+
+		.content {
+			margin: 30px auto;
+			width: 1000px;
+			height: 409px;
+			border: #dfdfdf solid 1px;
+			overflow: hidden;
+		}
+
+		.content li {
+			display: block;
+			height: 40px;
+			line-height: 40px;
+			text-align: center;
+			font-size: 14px;
+			border-bottom: #e8e8e8 solid 1px;
+		}
+
+		.page {
+			text-align: center;
+			margin-bottom: 200px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="container">
+		<div class="content">
+			<ul>
+				<li v-for="(item,index) in curData">{{item.title}}</li>
+			</ul>
+		</div>
+		<div class="page" id="page-1"></div>
+	</div>
+
+	<script src="./node_modules/vue/dist/vue.js"></script>
+	<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"></script>
+	<script src="jquery.transit.min.js"></script>
+	<script src="es6-shim.min.js"></script>
+	<script src="easyhelper.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+	<script>
+		new Vue({
+			el: "#container",
+			data() {
+				return {
+					menudata: [],
+					pageSize: 3,
+					curData: []
+				}
+			},
+			computed: {
+				groupData() {
+					let obj = {}
+					let key = 0
+					this.menudata.forEach((item, index) => {
+						if (!(index % this.pageSize)) {
+							obj[++key] = []
+						}
+            obj[key].push(item)
+					})
+					return obj
+				}
+			},
+			mounted () {
+				axios.get('./data.json').then(res => {
+					this.menudata = res.data
+					this.createPageNo(res.data.length, this.pageSize)
+				})
+			},
+			methods: {
+				createPageNo(total, pageSize) {
+					this.curData = this.groupData[1]
+					let that = this
+					Helper.ui.page("#page-1", {
+					  total, // 数据总条数
+					  pageSize, // 每页显示多少条数据
+					  change: function (i) {
+						console.log('点击的页码数', i)
+						  that.curData = that.groupData[i]
+							console.log(that.curData)
+					  }
+					});
+				}
+			}
+		})
+	</script>
+</body>
+
+</html>
